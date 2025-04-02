@@ -22,7 +22,6 @@ A voice AI assistant that leverages Twilio's Conversation Relay for real-time vo
 ## Installation
 
 1. Clone the repository:
-```bash
 git clone <your-repo-url>
 cd voxray-py
 
