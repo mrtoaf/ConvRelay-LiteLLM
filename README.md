@@ -1,9 +1,9 @@
 
 
-```md
+
 # 🚀 Voice AI Assistant with ConversationRelay & LiteLLM
 
-A voice AI assistant leveraging **Twilio's Conversation Relay** for real-time voice interactions, powered by multiple LLM providers via **LiteLLM**. This WebSocket server enables natural conversations over phone calls while maintaining session history.
+A voice AI assistant leveraging Twilio's Conversation Relay for real-time voice interactions, powered by multiple LLM providers via **LiteLLM**. This WebSocket server enables natural conversations over phone calls while maintaining session history.
 
 ## ✨ Features
 
@@ -86,4 +86,4 @@ We welcome contributions! Feel free to submit a pull request or open an issue.
 This project is licensed under the MIT License.  
 
 🚀 Happy coding!  
-```
+
