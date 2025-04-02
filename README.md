@@ -87,5 +87,3 @@ This project is licensed under the MIT License.
 
 🚀 Happy coding!  
 ```
-
-✅ **Now you can copy-paste this directly into your `README.md` file on GitHub!** 🚀
