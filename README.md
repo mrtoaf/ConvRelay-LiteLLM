@@ -27,7 +27,7 @@ Ensure you have the following installed:
 ### 1️⃣ Clone the repository  
 ```sh
 git clone <your-repo-url>
-cd voxray-py
+cd ConvRelay-LiteLLM
 ```
 
 ### 2️⃣ Install dependencies  
