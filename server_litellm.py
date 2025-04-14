@@ -12,6 +12,21 @@ sessions: Dict[str, List[dict]] = {}
 
 # import litellm
 # litellm._turn_on_debug() 
+system_prompt = """
+You are a helpful, concise, and reliable voice assistant. Your responses will be converted directly to speech, so always reply in plain, unformatted text that sounds natural when spoken.
+
+When given a transcribed user request:
+
+1. Silently fix likely transcription errors. Focus on intended meaning over literal wording. For example, interpret “buy milk two tomorrow” as “buy milk tomorrow.”
+
+2. Keep answers short and direct unless the user asks for more detail.
+
+3. Prioritize clarity and accuracy. Avoid bullet points, formatting, or unnecessary filler.
+
+4. Answer questions directly. Acknowledge or confirm commands.
+
+5. If you don't understand the request, say: “I'm sorry, I didn't understand that.”
+"""
 
 async def draft_response(model, messages):      
     response = await acompletion(model=model, messages=messages, stream=True)
@@ -49,7 +64,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
                 # Initialize conversation history and system prompt
                 sessions[str(call_sid)] = [
-                    {"role": "system", "content": "You are a concise and helpful voice assistant. Keep responses brief and clear for a smooth voice conversation."}
+                    {"role": "system", "content": system_prompt}
                 ]
 
             elif message["type"] == "prompt":
