@@ -33,6 +33,12 @@ async def setup_mcp():
         args=["-m", "mcp_server_time", "--local-timezone=America/New_York"]
     )
 
+    # Setup VIN MCP
+    vin_params = StdioServerParameters(
+        command="python3",
+        args=["./nhtsaVIN.py"]
+    )
+
     # First connect to weather MCP
     try:
         print("Connecting to weather MCP server...")
