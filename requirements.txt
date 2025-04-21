@@ -1,0 +1,6 @@
+fastapi>=0.103.1
+uvicorn[standard]>=0.23.2
+litellm>=1.0.0
+python-dotenv>=1.0.0
+httpx>=0.25.0
+mcp>=0.1.2
