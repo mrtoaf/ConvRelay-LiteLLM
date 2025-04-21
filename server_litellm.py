@@ -36,7 +36,7 @@ async def setup_mcp():
     # Setup VIN MCP
     vin_params = StdioServerParameters(
         command="python3",
-        args=["./nhtsaVIN.py"]
+        args=["./nhtsaVIN.py"] # Path to the weather MCP server
     )
 
     # First connect to weather MCP
@@ -66,6 +66,20 @@ async def setup_mcp():
         print(f"Error initializing time MCP: {e}")
         import traceback
         traceback.print_exc()
+
+    # Then connect to VIN MCP
+    try:
+        print("Connecting to VIN MCP server...")
+        async with stdio_client(vin_params) as (read, write):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                vin_tools = await experimental_mcp_client.load_mcp_tools(session=session, format="openai")
+                print("VIN MCP TOOLS:", len(vin_tools))
+                all_tools.extend(vin_tools)
+    except Exception as e:
+        print(f"Error initializing VIN MCP: {e}")
+        import traceback
+        traceback.print_exc()        
     
     if all_tools:
         print(f"Total MCP tools available: {len(all_tools)}")
