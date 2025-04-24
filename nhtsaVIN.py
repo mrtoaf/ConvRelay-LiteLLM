@@ -1,5 +1,6 @@
 from typing import Any, Optional
 import httpx
+import re
 from mcp.server.fastmcp import FastMCP
 
 # Init FastMCP server
@@ -32,13 +33,12 @@ def format_vehicle_info(data: dict) -> str:
     results = data["Results"][0]
     
     # Define important fields we want to keep, in display order
+    # Keep doors, seats, and seat rows as requested
     important_fields = [
         "VIN", "Make", "Model", "ModelYear", "Series", "Trim", 
-        "Manufacturer", "PlantCountry", "PlantCity", "PlantState",
-        "BodyClass", "VehicleType", "DriveType",
-        "EngineConfiguration", "EngineCylinders", "EngineHP", "DisplacementL", 
-        "FuelTypePrimary", "Doors", "Seats", "SeatRows",
-        "GVWR", "BasePrice", "ErrorText"
+        "Manufacturer", "BodyClass", "VehicleType", "DriveType",
+        "EngineConfiguration", "EngineCylinders", "EngineHP", "Displacement", 
+        "FuelTypePrimary", "Doors", "Seats", "SeatRows", "ErrorText"
     ]
     
     # Collect only important non-empty fields
@@ -47,41 +47,63 @@ def format_vehicle_info(data: dict) -> str:
         if field in results and results[field] not in (None, "", "/", "Not Applicable"):
             vehicle_info.append(f"{field}: {results[field]}")
     
-    # Add any other non-empty safety features
-    safety_features = []
-    for key, value in results.items():
-        if key not in important_fields and value not in (None, "", "/", "Not Applicable"):
-            if "Standard" in str(value) or "Optional" in str(value):
-                safety_features.append(f"{key}: {value}")
-    
-    if safety_features:
-        vehicle_info.append("\nSafety Features:")
-        vehicle_info.extend(safety_features)
+    # Skip safety features - just use the important fields we defined
     
     return "\n".join(vehicle_info)
 
 
 @mcp.tool()
-async def decode_vin(vin: str, modelyear: Optional[str] = None) -> str:
+async def decode_vin(vin: str = None, modelyear: Optional[str] = None) -> str:
     """Decode a Vehicle Identification Number (VIN) using NHTSA's API.
     
+    IMPORTANT: Always use this tool for any potential VIN, even if it appears malformed! 
+    This tool automatically handles speech-to-text artifacts including chunking, spaces, 
+    commas, periods, and other non-alphanumeric characters.
+    
     Args:
-        vin: Full or partial VIN (use * for unknown characters in partial VINs)
-        modelyear: Optional model year (recommended for more accurate results)
+        vin: The Vehicle Identification Number to decode (can include STT artifacts like spaces, commas, periods)
+        modelyear: Optional model year if known (improves accuracy)
     """
+    if not vin:
+        return "Please provide a VIN number."
+        
+    # Enhanced cleaning to handle a wider range of speech-to-text artifacts
+    # Remove ALL non-alphanumeric characters (punctuation, spaces, special chars)
+    clean_vin = re.sub(r'[^A-Za-z0-9]', '', vin)
+    
+    # Convert to uppercase as VINs are case-insensitive
+    clean_vin = clean_vin.upper()
+    
+    # Validate basic VIN structure (most VINs are 17 characters)
+    if len(clean_vin) != 17:
+        # If not 17 characters, still proceed but add a note
+        note = f"\nNote: The VIN you provided has {len(clean_vin)} characters instead of the standard 17 characters. Results may be less accurate."
+    else:
+        note = ""
+    
+    # Simple confirmation without any fancy formatting
+    confirmation = f"Looking up VIN: {clean_vin}{note}"
+    
     # Construct the URL with the flat format
-    url = f"{NHTSA_API_BASE}/vehicles/DecodeVinValues/{vin}?format=json"
+    url = f"{NHTSA_API_BASE}/vehicles/DecodeVinValues/{clean_vin}?format=json"
     
     # Add model year if provided
     if modelyear:
-        url += f"&modelyear={modelyear}"
+        # Clean model year too (in case it has punctuation)
+        clean_modelyear = re.sub(r'[,.\s\-_]', '', str(modelyear))
+        url += f"&modelyear={clean_modelyear}"
     
     data = await make_nhtsa_request(url)
     
     if not data:
-        return "Unable to fetch vehicle information."
+        return "Unable to fetch vehicle information for this VIN."
     
-    return format_vehicle_info(data)
+    vehicle_info = format_vehicle_info(data)
+    
+    # Simple header without model year emphasis
+    header = "Here's the vehicle information:"
+    
+    return f"{confirmation}\n\n{header}\n\n{vehicle_info}"
 
 
 if __name__ == "__main__":
